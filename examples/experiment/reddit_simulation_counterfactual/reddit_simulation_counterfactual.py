@@ -43,7 +43,7 @@ from oasis.social_platform.typing import ActionType
 social_log = logging.getLogger(name="social")
 social_log.propagate = False
 social_log.setLevel("DEBUG")
-now = datetime.now()
+now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 file_handler = logging.FileHandler(f"./log/social-{str(now)}.log",
                                    encoding="utf-8")
 file_handler.setLevel("DEBUG")
