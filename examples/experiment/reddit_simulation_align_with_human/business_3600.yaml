@@ -28,7 +28,9 @@ simulation:
     - refresh
     - do_nothing
 inference:
-  model_type: llama-3
+  model_type: tinyllama
+  model_path: 'C:/Users/brend/oasis/models/tinyllama'  # full path to where you downloaded the model
+  stop_tokens: [ "<|eot_id|>", "<|end_of_text|>" ]
   server_url:
-    - host: 10.109.1.9
-      ports: [8002, 8003, 8005]
+    - host: "localhost"
+      ports: [8000]
