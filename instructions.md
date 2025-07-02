@@ -1,5 +1,5 @@
 ## Instructions
-
+source venv/bin/activate
 1. download the qwen 1.5b model
 ```angular2html
 huggingface-cli download --resume-download "Qwen/Qwen2.5-1.5B-Instruct"  --local-dir "models\qwen" --local-dir-use-symlinks False --token ""
