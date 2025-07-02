@@ -29,7 +29,7 @@ cmd = (
     f"--model {model_path} "
     f"--served-model-name {served_model_name} "
     f"--port {port} "
-    f"--gpu-memory-utilization 0.82 "
+    f"--gpu-memory-utilization 0.9 "
     f"--disable-log-stats"
 )
 

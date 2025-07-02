@@ -1,4 +1,12 @@
----
+inference:
+  model_type: qwen-2
+  model_path: 'models/qwen'  # update path as needed
+  stop_tokens: ["<|im_end|>", "<|endoftext|>"]
+  server_url:
+    - host: localhost
+      ports: [8000]
+
+
 data:
   user_path: 'data\reddit\user_data_36.json'
   pair_path: 'data\reddit\counterfactual_36.json'
@@ -28,10 +36,5 @@ simulation:
     - refresh
     - do_nothing
     - create_comment
-inference:
-  model_type: tinyllama
-  model_path: 'models/tinyllama'  # full path to where you downloaded the model
-  stop_tokens: [ "<|eot_id|>", "<|end_of_text|>" ]
-  server_url:
-    - host: localhost
-      ports: [8000]
+
+

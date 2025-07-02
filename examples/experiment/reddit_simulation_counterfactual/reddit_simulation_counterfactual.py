@@ -213,8 +213,12 @@ async def running(
 
 if __name__ == "__main__":
     args = parser.parse_args()
+    print("CONFIG PATH:", args.config_path)
+    print("EXISTS?", os.path.exists(args.config_path))
 
     if os.path.exists(args.config_path):
+
+
         with open(args.config_path, "r") as f:
             cfg = safe_load(f)
         data_params = cfg.get("data")
