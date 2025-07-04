@@ -1,25 +1,25 @@
-
 import asyncio
 import os
+import json
 
 from camel.models import ModelFactory
-from camel.types import ModelPlatformType, ModelType
-from ollama_model import OllamaModel
+from camel.types import ModelPlatformType
 import oasis
-from oasis import (ActionType, LLMAction, ManualAction,
-                   generate_reddit_agent_graph)
+from oasis import (ActionType, LLMAction, ManualAction, generate_reddit_agent_graph)
 
 
 async def main():
-    # Define the model for the agents
+    # Load scraped post data
+    with open("reddit_structured_posts.json", "r", encoding="utf-8") as f:
+        scraped_posts = json.load(f)
 
+    # Initialize model
     tinyllama_model = ModelFactory.create(
-            model_platform=ModelPlatformType.VLLM,
-            model_type="qwen-2",
-            url="http://localhost:8000/v1",
-        )
+        model_platform=ModelPlatformType.VLLM,
+        model_type="qwen-2",
+        url="http://localhost:8000/v1",
+    )
 
-    # Define the available actions for the agents
     available_actions = [
         ActionType.LIKE_POST,
         ActionType.DISLIKE_POST,
@@ -42,55 +42,53 @@ async def main():
         available_actions=available_actions,
     )
 
-    # Define the path to the database
     db_path = "./data/reddit_simulation.db"
-
-    # Delete the old database
     if os.path.exists(db_path):
         os.remove(db_path)
 
-    # Make the environment
     env = oasis.make(
         agent_graph=agent_graph,
         platform=oasis.DefaultPlatformType.REDDIT,
         database_path=db_path,
     )
 
-    # Run the environment
     await env.reset()
 
+    # Step 1: Assign real posts to agents as CREATE_POST actions
     actions_1 = {}
-    actions_1[env.agent_graph.get_agent(0)] = [
-        ManualAction(action_type=ActionType.CREATE_POST,
-                     action_args={"content": "Hello, world!"}),
-        ManualAction(action_type=ActionType.CREATE_COMMENT,
-                     action_args={
-                         "post_id": "1",
-                         "content": "Welcome to the OASIS World!"
-                     })
-    ]
-    actions_1[env.agent_graph.get_agent(1)] = ManualAction(
-        action_type=ActionType.CREATE_COMMENT,
-        action_args={
-            "post_id": "1",
-            "content": "I like the OASIS world."
-        })
+    agents = list(env.agent_graph.get_agents())
+    for i, (agent_id, agent) in enumerate(agents):
+        if i >= len(scraped_posts):
+            break
+        post = scraped_posts[i]
+        post_title = post.get("post_title", "Untitled Post")
+        post_content = post.get("post_text", "No content")
+        print(post_content)
+
+        actions_1[agent] = ManualAction(
+            action_type=ActionType.CREATE_POST,
+            action_args={
+
+                "content": post_title
+            }
+        )
+
     await env.step(actions_1)
 
-    actions_2 = {
-        agent: LLMAction()
-        for _, agent in env.agent_graph.get_agents()
-    }
+    # Step 2: Let agents act using the model
+    num_steps = 15  # ← Change this to how many total LLM-driven steps you want
 
-    # Perform the actions
-    await env.step(actions_2)
+    for step_num in range(num_steps):
+        print(f"\n🌐 Step {step_num + 1}/{num_steps}")
+        actions = {
+            agent: LLMAction()
+            for _, agent in env.agent_graph.get_agents()
+        }
+        await env.step(actions)
 
-    # Close the environment
     await env.close()
 
 
 if __name__ == "__main__":
-
     print(list(ModelPlatformType))
-
     asyncio.run(main())
