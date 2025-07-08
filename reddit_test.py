@@ -43,7 +43,7 @@ async def main():
     )
 
     # Define the path to the database
-    db_path = "./data/reddit_simulation.db"
+    db_path = "./data/reddit_simulation_debug.db"
 
     # Delete the old database
     if os.path.exists(db_path):
