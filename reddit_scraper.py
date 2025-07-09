@@ -76,7 +76,7 @@ def save_to_json(data, filename="reddit_structured_posts.json"):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 if __name__ == "__main__":
-    subreddit = "NationalServiceSG"
-    structured_posts = scrape_structured(subreddit, num_scrolls=5)
+    subreddit = "ImagesOfSingapore"
+    structured_posts = scrape_structured(subreddit, num_scrolls=2)
     save_to_json(structured_posts)
     print(f"✅ Extracted {len(structured_posts)} structured posts from r/{subreddit}")
