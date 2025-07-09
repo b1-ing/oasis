@@ -34,6 +34,7 @@ if osp.exists(test_db_filepath):
 async def running():
     agent_info_path = "./test/test_data/user_all_id_time.csv"
     twitter_channel = Channel()
+    print("USING 4O MODEL")
     model = ModelFactory.create(
         model_platform=ModelPlatformType.OPENAI,
         model_type='gpt-4o-mini',

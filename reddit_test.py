@@ -6,6 +6,8 @@ from camel.models import ModelFactory
 from camel.types import ModelPlatformType
 import oasis
 from oasis import (ActionType, LLMAction, ManualAction, generate_reddit_agent_graph)
+from oasis.clock.clock import Clock
+
 
 
 async def main():
@@ -37,7 +39,7 @@ async def main():
     ]
 
     agent_graph = await generate_reddit_agent_graph(
-        profile_path="./data/reddit/user_data_36.json",
+        profile_path="fake_users.json",
         model=tinyllama_model,
         available_actions=available_actions,
     )
@@ -46,11 +48,19 @@ async def main():
     if os.path.exists(db_path):
         os.remove(db_path)
 
+        # 6 hours per real second in simulated time
+        six_hours_in_seconds = 6 * 60 * 60
+        clock = Clock(k=six_hours_in_seconds)
+
+
     env = oasis.make(
         agent_graph=agent_graph,
         platform=oasis.DefaultPlatformType.REDDIT,
         database_path=db_path,
+        clock=clock,
     )
+
+
 
     await env.reset()
 
