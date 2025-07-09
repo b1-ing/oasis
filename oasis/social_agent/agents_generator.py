@@ -582,7 +582,11 @@ async def generate_reddit_agent_graph(
             "other_info": {},
         }
         # Update agent profile with additional information
-        profile["other_info"]["user_profile"] = agent_info[i]["persona"]
+        if isinstance(agent_info[i], dict) and "persona" in agent_info[i]:
+            profile["other_info"]["user_profile"] = agent_info[i]["persona"]
+        else:
+            print("⚠️ agent_info[i] is not a dict or missing 'persona':", agent_info[i])
+
         profile["other_info"]["mbti"] = agent_info[i]["mbti"]
         profile["other_info"]["gender"] = agent_info[i]["gender"]
         profile["other_info"]["age"] = agent_info[i]["age"]

@@ -8,7 +8,7 @@ inference:
 
 
 data:
-  user_path: 'data\reddit\user_data_36.json'
+  user_path: 'fake_users.json'
   pair_path: 'data\reddit\counterfactual_36.json'
   db_path: 'examples\experiment\reddit_simulation_counterfactual\counterfactual_100_control.db'
 simulation:
