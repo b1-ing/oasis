@@ -8,6 +8,7 @@ fake = Faker()
 def generate_fake_users(n):
     users = []
 
+
     for i in range(n):
         username = fake.user_name()
         location = "Singapore"

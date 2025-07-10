@@ -62,8 +62,8 @@ class Platform:
         show_score: bool = False,
         allow_self_rating: bool = True,
         recsys_type: str | RecsysType = "reddit",
-        refresh_rec_post_count: int = 1,
-        max_rec_post_len: int = 2,
+        refresh_rec_post_count: int = 3,
+        max_rec_post_len: int = 3,
         following_post_count=3,
         use_openai_embedding: bool = False,
     ):

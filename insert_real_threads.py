@@ -1,32 +1,40 @@
 import asyncio
 import os
 import json
+from datetime import datetime
 from oasis.social_platform.platform import Platform
-from camel.models import ModelFactory
-from camel.types import ModelPlatformType
-import oasis
+from oasis.social_platform.channel import Channel
+from oasis.clock.clock import Clock
 from oasis import (
     ActionType,
-    LLMAction,
     ManualAction,
-    generate_reddit_agent_graph
+    LLMAction,
+    generate_reddit_agent_graph,
+    make,
 )
-from oasis.clock.clock import Clock
+from camel.models import ModelFactory
+from camel.types import ModelPlatformType
 
 
 async def main():
-    # ========== Load real Reddit thread data ==========
-    with open("reddit_structured_posts.json", "r", encoding="utf-8") as f:
-        scraped_posts = json.load(f)
+    # Load the structured post data with author_id and timestep
+    with open("processed_posts.json", "r", encoding="utf-8") as f:
+        posts = json.load(f)
 
-    # ========== Initialize model ==========
+    # Build a mapping from timestep → list of posts
+    posts_by_timestep = {}
+    for post in posts:
+        timestep = post["timestep"]
+        posts_by_timestep.setdefault(timestep, []).append(post)
+
+    # Init model
     model = ModelFactory.create(
         model_platform=ModelPlatformType.VLLM,
         model_type="qwen-2",
         url="http://localhost:8000/v1",
     )
 
-    # ========== Define available agent actions ==========
+    # Actions
     available_actions = [
         ActionType.LIKE_POST,
         ActionType.DISLIKE_POST,
@@ -43,71 +51,65 @@ async def main():
         ActionType.MUTE,
     ]
 
-    # ========== Load agents from fake profile ==========
+    # Load agents
     agent_graph = await generate_reddit_agent_graph(
         profile_path="fake_users.json",
         model=model,
         available_actions=available_actions,
     )
 
-    # ========== Setup environment and simulation clock ==========
+    # Init environment
     db_path = "./data/reddit_simulation.db"
     if os.path.exists(db_path):
         os.remove(db_path)
 
-    # Simulate 6 hours per real second
-    from oasis.social_platform.channel import Channel
-
-
-    # Set up clock
-    hours_per_real_second = 6
-    sim_clock = Clock(k=hours_per_real_second * 3600)
-
-    # Create the channel for communication
+    clock = Clock(k=0.67 * 60 * 60)  # 2hr/timestep
+    start_time = datetime(2025, 6, 19, 5, 0)
     channel = Channel()
-
-    # Create platform manually, injecting the clock
     platform = Platform(
         db_path=db_path,
         channel=channel,
-        sandbox_clock=sim_clock,
+        sandbox_clock=clock,
+        start_time=start_time,
     )
 
-    # Now build the environment
-    env = oasis.make(
-        agent_graph=agent_graph,
-        platform=platform,  # ✅ pass actual Platform object, not enum
-    )
-
-
+    env = make(agent_graph=agent_graph, platform=platform)
     await env.reset()
 
-    # ========== Step 1: Post real threads ==========
-    actions_init = {}
-    agents = list(env.agent_graph.get_agents())
+    # Run simulation for each timestep
+    max_timestep = max(posts_by_timestep.keys())
+    agents = dict(agent_graph.get_agents())
 
-    for i, (_, agent) in enumerate(agents):
-        if i >= len(scraped_posts):
-            break
-        post = scraped_posts[i]
-        title = post.get("post_title", "Untitled Post")
-        body = post.get("post_text", "")
+    for t in range(max_timestep + 1):
+        print(f"\n🕒 Timestep {t}")
+        actions = {}
 
-        print(f"Posting: {title}")
-        actions_init[agent] = ManualAction(
-            action_type=ActionType.CREATE_POST,
-            action_args={"content": f"{title}\n\n{body}"}
-        )
+        # Post threads scheduled for this timestep
+        for post in posts_by_timestep.get(t, []):
+            author_id = post["author_id"]
+            if author_id not in agents:
+                print(f"❌ Skipping post by author_id {author_id} (not in agent list)")
+                continue
 
-    await env.step(actions_init)
+            agent = agents[author_id]
+            title = post.get("title", "Untitled Post")
+            body = post.get("post_text") or ""
+            content = f"{title}\n\n{body}".strip()
 
-    # ========== Step 2: Let agents act with LLM ==========
-    num_steps = 15  # Adjust as needed
-    for step_num in range(num_steps):
-        print(f"\n🌐 Simulation Step {step_num + 1}/{num_steps}")
+            print(f"📝 {agent.user_info.user_name} posting: {title}")
+            actions[agent] = ManualAction(
+                action_type=ActionType.CREATE_POST,
+                action_args={"content": content}
+            )
+
+        # Step: post them
+        if actions:
+            await env.step(actions)
+
+        # Then let everyone act
         llm_actions = {
             agent: LLMAction()
-            for _, agent in env.agent_graph.get_agents()
+            for _, agent in agent_graph.get_agents()
         }
         await env.step(llm_actions)
 
