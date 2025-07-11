@@ -36,6 +36,7 @@ async def main():
         ActionType.DO_NOTHING,
         ActionType.FOLLOW,
         ActionType.MUTE,
+        ActionType.REPOST,
     ]
 
     agent_graph = await generate_reddit_agent_graph(

@@ -52,7 +52,7 @@ class SocialEnvironment(Environment):
         "reflects your current inclination based on your profile and "
         "posts content. Do not limit your action in just `like` to like posts.json."
          "Based on your preferences and the content shown, you can like, comment,dislike, or share not just refresh."
-         "if you havent done any action in >10 time steps, do something.")
+         "if you havent done any action in >20 time steps, do something.")
 
     def __init__(self, action: SocialAction):
         self.action = action

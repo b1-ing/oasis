@@ -14,6 +14,7 @@ from oasis import (
 )
 from camel.models import ModelFactory
 from camel.types import ModelPlatformType
+import time
 
 
 async def main():
@@ -59,11 +60,11 @@ async def main():
     )
 
     # Init environment
-    db_path = "./data/reddit_simulation.db"
+    db_path = "./data/reddit_simulation_1d.db"
     if os.path.exists(db_path):
         os.remove(db_path)
 
-    clock = Clock(k=0.67 * 60 * 60)  # 2hr/timestep
+    clock = Clock(k=180)  # 2hr/timestep
     start_time = datetime(2025, 6, 19, 5, 0)
     channel = Channel()
     platform = Platform(
@@ -82,6 +83,8 @@ async def main():
 
     for t in range(max_timestep + 1):
         print(f"\n🕒 Timestep {t}")
+        start_real_time = time.perf_counter()
+
         actions = {}
 
         # Post threads scheduled for this timestep
@@ -112,6 +115,9 @@ async def main():
             for _, agent in agent_graph.get_agents()
         }
         await env.step(llm_actions)
+        end_real_time = time.perf_counter()  # ⏱️ end timing
+        elapsed_time = end_real_time - start_real_time
+        print(f"⏱️ Real time taken for timestep {t}: {elapsed_time:.2f} seconds")
 
     await env.close()
     print("✅ Simulation complete.")

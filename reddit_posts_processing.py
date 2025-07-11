@@ -27,7 +27,7 @@ earliest_time = min(timestamps)
 for post in posts:
     post_time = datetime.fromisoformat(post["timestamp"].replace("Z", "+00:00"))
     delta_seconds = (post_time - earliest_time).total_seconds()
-    post["timestep"] = int(delta_seconds // (2 * 3600))  # 2 hours = 7200 seconds
+    post["timestep"] = int(delta_seconds // (24 * 3600))  # 2 hours = 7200 seconds
 
 # Save result
 with open("processed_posts.json", "w", encoding="utf-8") as f:
