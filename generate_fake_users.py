@@ -17,6 +17,7 @@ def generate_fake_users(n):
             "entertainment", "science", "culture", "memes"
         ])
         profile = {
+            "id": i,
             "username": username,
             "country": location,
             "realname": "",

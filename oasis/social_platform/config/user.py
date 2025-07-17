@@ -21,11 +21,13 @@ from camel.prompts import TextPrompt
 
 @dataclass
 class UserInfo:
+    user_id: int | None = None
     user_name: str | None = None
     name: str | None = None
     description: str | None = None
     profile: dict[str, Any] | None = None
     recsys_type: str = "twitter"
+    model: Union[BaseModelBackend, List[BaseModelBackend]]
     is_controllable: bool = False
 
     def to_custom_system_message(self, user_info_template: TextPrompt) -> str:
