@@ -317,3 +317,61 @@ class SocialAgent(ChatAgent):
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}(agent_id={self.social_agent_id}, "
                 f"model_type={self.model_type.value})")
+
+
+
+
+class ManualPosterAgent(SocialAgent):
+    """
+    A simple non-LLM social media agent that performs basic scripted behavior.
+    """
+
+    def __init__(self,
+                 agent_id: int,
+                 user_info: UserInfo,
+                 agent_graph: "AgentGraph" = None,
+                 channel: Channel = None,
+                 available_actions: list[ActionType] = None):
+        super().__init__(agent_id=agent_id)
+        self.agent_id = agent_id
+        self.user_info = user_info
+        self.channel = channel or Channel()
+        self.agent_graph = agent_graph
+        self.available_actions = available_actions or [
+            ActionType.CREATE_POST,
+            ActionType.LIKE_POST,
+            ActionType.DO_NOTHING
+        ]
+        self.env = SocialEnvironment(SocialAction(agent_id, self.channel))
+
+    async def act(self):
+        """
+        A basic agent action logic — posts occasionally, likes posts sometimes,
+        or does nothing.
+        """
+        import random
+
+        # Decide behavior
+        choice = random.choices(
+            population=["post", "like", "nothing"],
+            weights=[0.2, 0.3, 0.5],  # Tune behavior here
+            k=1
+        )[0]
+
+        if choice == "post":
+            content = f"Here's a random thought by {self.user_info.name}."
+            agent_log.info(f"[ManualPosterAgent] {self.agent_id} is posting.")
+            return await self.env.action.create_post(content)
+
+        elif choice == "like":
+            posts = await self.env.action.search_posts()
+            if posts:
+                post = random.choice(posts)
+                agent_log.info(f"[ManualPosterAgent] {self.agent_id} is liking a post.")
+                return await self.env.action.like_post(post_id=post["id"])
+
+        agent_log.info(f"[ManualPosterAgent] {self.agent_id} does nothing.")
+        return await self.env.action.do_nothing()
+
+    def __str__(self) -> str:
+        return f"ManualPosterAgent(agent_id={self.agent_id})"

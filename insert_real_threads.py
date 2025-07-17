@@ -15,6 +15,40 @@ from oasis import (
 from camel.models import ModelFactory
 from camel.types import ModelPlatformType
 import time
+from oasis.social_agent.agent import SocialAgent
+from oasis.social_agent.agent_graph import AgentGraph
+
+async def generate_hybrid_agent_graph(model, available_actions, llm_count=100, normal_count=3000):
+    agent_graph = AgentGraph()
+
+    # Load your fake profiles (e.g., scraped Reddit users)
+    with open("fake_users.json", "r", encoding="utf-8") as f:
+        profiles = json.load(f)
+
+    count = 1
+
+    # Choose LLM-backed authors first
+    llm_profiles = profiles[:llm_count]
+    for p in llm_profiles:
+        agent = SocialAgent(user_info=p,agent_id=count, model=model, available_actions=available_actions)
+        agent_graph.add_agent(agent)
+        count+=1
+
+    # Then normal agents (do nothing or only simple actions)
+    normal_profiles = profiles[llm_count:llm_count + normal_count]
+    for p in normal_profiles:
+        agent = SocialAgent(user_info=p, model=None, available_actions=[
+            ActionType.LIKE_POST,
+            ActionType.DISLIKE_POST,
+            ActionType.LIKE_COMMENT,
+            ActionType.DISLIKE_COMMENT,
+            ActionType.SEARCH_POSTS,
+            ActionType.REFRESH,
+        ])
+        agent_graph.add_agent(agent)
+
+    return agent_graph
+
 
 
 async def main():
@@ -52,11 +86,14 @@ async def main():
         ActionType.MUTE,
     ]
 
+
+
     # Load agents
     agent_graph = await generate_reddit_agent_graph(
-        profile_path="fake_users.json",
         model=model,
         available_actions=available_actions,
+        profile_path="fake_users.json"
+
     )
 
     # Init environment
@@ -72,6 +109,7 @@ async def main():
         channel=channel,
         sandbox_clock=clock,
         start_time=start_time,
+
     )
 
     env = make(agent_graph=agent_graph, platform=platform)
@@ -86,11 +124,16 @@ async def main():
         start_real_time = time.perf_counter()
 
         actions = {}
+        agents = dict(agent_graph.get_agents())
+        llm_author_ids = {a.user_info.user_id for a in agents.values()}
+
 
         # Post threads scheduled for this timestep
         for post in posts_by_timestep.get(t, []):
             author_id = post["author_id"]
-            if author_id not in agents:
+            if author_id not in llm_author_ids:
+                continue
+            elif author_id not in agents:
                 print(f"❌ Skipping post by author_id {author_id} (not in agent list)")
                 continue
 
@@ -98,8 +141,6 @@ async def main():
             title = post.get("title", "Untitled Post")
             body = post.get("post_text") or ""
             content = f"{title}\n\n{body}".strip()
-
-            print(f"📝 {agent.user_info.user_name} posting: {title}")
             actions[agent] = ManualAction(
                 action_type=ActionType.CREATE_POST,
                 action_args={"content": content}
@@ -113,7 +154,9 @@ async def main():
         llm_actions = {
             agent: LLMAction()
             for _, agent in agent_graph.get_agents()
+            if agent.model is not None
         }
+
         await env.step(llm_actions)
         end_real_time = time.perf_counter()  # ⏱️ end timing
         elapsed_time = end_real_time - start_real_time
