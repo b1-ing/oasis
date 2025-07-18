@@ -15,45 +15,149 @@ from oasis import (
 from camel.models import ModelFactory
 from camel.types import ModelPlatformType
 import time
-from oasis.social_agent.agent import SocialAgent
+from oasis.social_agent.agent import SocialAgent, ManualPosterAgent
 from oasis.social_agent.agent_graph import AgentGraph
+from typing import List, Optional, Union
+from camel.models import BaseModelBackend, ModelManager
+from oasis.social_platform.config import Neo4jConfig, UserInfo
+#
+# async def generate_reddit_agent_graph(
+#     profile_path: str,
+#     model: Optional[Union[BaseModelBackend, List[BaseModelBackend],
+#                           ModelManager]] = None,
+#     available_actions: list[ActionType] = None,
+# ) -> AgentGraph:
+#     agent_graph = AgentGraph()
+#     with open(profile_path, "r", encoding="utf-8") as file:
+#         agent_info = json.load(file)
+#
+#     async def process_agent(i):
+#         # Instantiate an agent
+#         profile = {
+#             "nodes": [],  # Relationships with other agents
+#             "edges": [],  # Relationship details
+#             "other_info": {},
+#         }
+#         # Update agent profile with additional information
+#         if isinstance(agent_info[i], dict) and "persona" in agent_info[i]:
+#             profile["other_info"]["user_profile"] = agent_info[i]["persona"]
+#         else:
+#             print("⚠️ agent_info[i] is not a dict or missing 'persona':", agent_info[i])
+#
+#         profile["other_info"]["mbti"] = agent_info[i]["mbti"]
+#         profile["other_info"]["gender"] = agent_info[i]["gender"]
+#         profile["other_info"]["age"] = agent_info[i]["age"]
+#         profile["other_info"]["country"] = agent_info[i]["country"]
+#
+#         user_info = UserInfo(
+#             name=agent_info[i]["username"],
+#             description=agent_info[i]["bio"],
+#             profile=profile,
+#             recsys_type="reddit",
+#         )
+#
+#         agent = SocialAgent(
+#             agent_id=i,
+#             user_info=user_info,
+#             agent_graph=agent_graph,
+#             model=model,
+#             available_actions=available_actions,
+#         )
+#
+#         # Add agent to the agent graph
+#         agent_graph.add_agent(agent)
+#
+#     tasks = [process_agent(i) for i in range(len(agent_info))]
+#     await asyncio.gather(*tasks)
+#     return agent_graph
 
-async def generate_hybrid_agent_graph(model, available_actions, llm_count=100, normal_count=3000):
+async def generate_hybrid_agent_graph(
+    profile_path: str,
+    model: Optional[Union[BaseModelBackend, List[BaseModelBackend],
+                          ModelManager]] = None,
+    available_actions: list[ActionType] = None,
+    llm_count=100,
+    normal_count=100)-> AgentGraph:
+
+
     agent_graph = AgentGraph()
 
     # Load your fake profiles (e.g., scraped Reddit users)
     with open("fake_users.json", "r", encoding="utf-8") as f:
-        profiles = json.load(f)
+        agent_info = json.load(f)
 
-    count = 1
 
-    # Choose LLM-backed authors first
-    llm_profiles = profiles[:llm_count]
-    for p in llm_profiles:
-        agent = SocialAgent(user_info=p,agent_id=count, model=model, available_actions=available_actions)
-        agent_graph.add_agent(agent)
-        count+=1
+    async def process_agent(i, llm_count):
+            # Instantiate an agent
+            profile = {
+                "nodes": [],  # Relationships with other agents
+                "edges": [],  # Relationship details
+                "other_info": {},
+            }
 
-    # Then normal agents (do nothing or only simple actions)
-    normal_profiles = profiles[llm_count:llm_count + normal_count]
-    for p in normal_profiles:
-        agent = SocialAgent(user_info=p, model=None, available_actions=[
-            ActionType.LIKE_POST,
-            ActionType.DISLIKE_POST,
-            ActionType.LIKE_COMMENT,
-            ActionType.DISLIKE_COMMENT,
-            ActionType.SEARCH_POSTS,
-            ActionType.REFRESH,
-        ])
-        agent_graph.add_agent(agent)
+            if isinstance(agent_info[i], dict) and "persona" in agent_info[i]:
+                profile["other_info"]["user_profile"] = agent_info[i]["persona"]
+            else:
+                print("⚠️ agent_info[i] is not a dict or missing 'persona':", agent_info[i])
 
+                # Fill other profile metadata
+            profile["other_info"]["mbti"] = agent_info[i].get("mbti")
+            profile["other_info"]["gender"] = agent_info[i].get("gender")
+            profile["other_info"]["age"] = agent_info[i].get("age")
+            profile["other_info"]["country"] = agent_info[i].get("country")
+            user_info = UserInfo(
+
+                                name=agent_info[i]["username"],
+                                description=agent_info[i].get("bio", ""),
+                                profile=profile,
+                                recsys_type="llm" if i < llm_count else "normal"
+                            )
+
+            is_llm = i < llm_count
+
+            print(model)
+
+            if is_llm:
+                print(i)
+
+                agent = SocialAgent(
+                                    agent_id=i,
+                                    user_info=user_info,
+                                    agent_graph=agent_graph,
+                                    model=model,
+                                    available_actions=available_actions,
+                                )
+
+                agent_graph.add_agent(agent)
+                print(f"agent {agent.user_info.id} added")
+            else:
+                agent = ManualPosterAgent(
+                                                    agent_id=i,
+                                                    user_info=user_info,
+                                                    agent_graph=agent_graph,
+                                                    available_actions=available_actions if is_llm else [
+                                                        ActionType.LIKE_POST,
+                                                        ActionType.DISLIKE_POST,
+                                                        ActionType.LIKE_COMMENT,
+                                                        ActionType.DISLIKE_COMMENT,
+                                                        ActionType.SEARCH_POSTS,
+                                                        ActionType.REFRESH,
+                                                    ],
+                                                )
+
+                agent_graph.add_agent(agent)
+                print(f"agent {agent.agent_id} added")
+
+
+    tasks = [process_agent(i, llm_count) for i in range(llm_count + normal_count)]
+    await asyncio.gather(*tasks)
     return agent_graph
 
 
 
 async def main():
     # Load the structured post data with author_id and timestep
-    with open("processed_posts.json", "r", encoding="utf-8") as f:
+    with open("processed_posts_security.json", "r", encoding="utf-8") as f:
         posts = json.load(f)
 
     # Build a mapping from timestep → list of posts
@@ -97,7 +201,7 @@ async def main():
     )
 
     # Init environment
-    db_path = "./data/reddit_simulation_1d.db"
+    db_path = "./data/reddit_simulation_stat.db"
     if os.path.exists(db_path):
         os.remove(db_path)
 
@@ -125,7 +229,8 @@ async def main():
 
         actions = {}
         agents = dict(agent_graph.get_agents())
-        llm_author_ids = {a.user_info.user_id for a in agents.values()}
+        llm_author_ids = {a.social_agent_id for a in agents.values()}
+        print("llm_author_ids" , llm_author_ids)
 
 
         # Post threads scheduled for this timestep
@@ -154,7 +259,7 @@ async def main():
         llm_actions = {
             agent: LLMAction()
             for _, agent in agent_graph.get_agents()
-            if agent.model is not None
+            if isinstance(agent, SocialAgent)
         }
 
         await env.step(llm_actions)

@@ -72,6 +72,7 @@ class SocialAgent(ChatAgent):
         self.user_info = user_info
         self.channel = channel or Channel()
         self.env = SocialEnvironment(SocialAction(agent_id, self.channel))
+        self.model=model
         if user_info_template is None:
             system_message_content = self.user_info.to_system_message()
         else:
@@ -119,6 +120,8 @@ class SocialAgent(ChatAgent):
             "a lot of time and effort for nothing.\n"
             "\n"
             "What do you think Helen should do?")
+        print(f"Inside SocialAgent: ID type is {type(agent_id)} value: {agent_id}")
+
 
     async def perform_action_by_llm(self):
         # Get posts:
@@ -321,7 +324,7 @@ class SocialAgent(ChatAgent):
 
 
 
-class ManualPosterAgent(SocialAgent):
+class ManualPosterAgent():
     """
     A simple non-LLM social media agent that performs basic scripted behavior.
     """
@@ -332,7 +335,6 @@ class ManualPosterAgent(SocialAgent):
                  agent_graph: "AgentGraph" = None,
                  channel: Channel = None,
                  available_actions: list[ActionType] = None):
-        super().__init__(agent_id=agent_id)
         self.agent_id = agent_id
         self.user_info = user_info
         self.channel = channel or Channel()
@@ -372,6 +374,10 @@ class ManualPosterAgent(SocialAgent):
 
         agent_log.info(f"[ManualPosterAgent] {self.agent_id} does nothing.")
         return await self.env.action.do_nothing()
+
+    @property
+    def social_agent_id(self):
+        return self.agent_id
 
     def __str__(self) -> str:
         return f"ManualPosterAgent(agent_id={self.agent_id})"

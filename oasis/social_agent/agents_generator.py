@@ -445,7 +445,6 @@ async def generate_reddit_agents(
         agent_graph = AgentGraph()
 
     control_user_num = agent_graph.get_num_nodes()
-
     with open(agent_info_path, "r", encoding="utf-8") as file:
         agent_info = json.load(file)
 
@@ -462,6 +461,8 @@ async def generate_reddit_agents(
         profile["other_info"]["gender"] = agent_info[i]["gender"]
         profile["other_info"]["age"] = agent_info[i]["age"]
         profile["other_info"]["country"] = agent_info[i]["country"]
+
+        print("model:", model)
 
         user_info = UserInfo(
             name=agent_info[i]["username"],
@@ -599,6 +600,9 @@ async def generate_reddit_agent_graph(
             recsys_type="reddit",
         )
 
+        print(f"Creating agent with ID type: {type(i)} and value: {i}")
+
+
         agent = SocialAgent(
             agent_id=i,
             user_info=user_info,
@@ -609,6 +613,8 @@ async def generate_reddit_agent_graph(
 
         # Add agent to the agent graph
         agent_graph.add_agent(agent)
+
+        print(f"agent final value is {agent.social_agent_id}")
 
     tasks = [process_agent(i) for i in range(len(agent_info))]
     await asyncio.gather(*tasks)

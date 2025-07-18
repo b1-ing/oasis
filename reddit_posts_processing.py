@@ -3,7 +3,7 @@ from datetime import datetime
 from collections import defaultdict
 
 # Load posts
-with open("reddit_structured_posts.json", "r", encoding="utf-8") as f:
+with open("reddit_structured_posts_security.json", "r", encoding="utf-8") as f:
     posts = json.load(f)
 
 # Step 1: Assign consistent author_id to each unique author
@@ -30,7 +30,7 @@ for post in posts:
     post["timestep"] = int(delta_seconds // (24 * 3600))  # 2 hours = 7200 seconds
 
 # Save result
-with open("processed_posts.json", "w", encoding="utf-8") as f:
+with open("processed_posts_security.json", "w", encoding="utf-8") as f:
     json.dump(posts, f, indent=2, ensure_ascii=False)
 
-print("✅ Processed and saved to processed_posts.json")
+print("✅ Processed and saved to processed_posts_security.json")

@@ -50,12 +50,35 @@ def scrape_structured(subreddit, num_scrolls=3):
             except:
                 flair = None
 
-            # Body preview
+            # Body preview (optional)
             try:
                 body_elem = post.find_element(By.CSS_SELECTOR, '.feed-card-text-preview')
                 post_text = body_elem.text.strip()
             except:
                 post_text = None
+
+            # Score (upvotes)
+            try:
+                score_el = post.find_element(By.TAG_NAME, "faceplate-number")
+                score = int(score_el.text.strip())
+                print(score)
+                if score == 'Vote':  # sometimes it shows placeholder text
+                    score = None
+                else:
+                    score = int(score.replace('k', '000').replace('.', ''))
+            except:
+                score = None
+
+            # Comment count
+            try:
+                comment_elem = post.find_element(By.XPATH, ".//span[contains(text(),'comment')]")
+                comment_text = comment_elem.text.strip().split()[0]
+                if 'k' in comment_text:
+                    comments_count = int(float(comment_text.replace('k', '')) * 1000)
+                else:
+                    comments_count = int(comment_text)
+            except:
+                comments_count = None
 
             results.append({
                 "title": title,
@@ -63,7 +86,9 @@ def scrape_structured(subreddit, num_scrolls=3):
                 "author": author,
                 "timestamp": timestamp,
                 "flair": flair,
-                "post_text": post_text
+                "post_text": post_text,
+                "score": score,
+                "comments_count": comments_count
             })
         except Exception as e:
             continue
@@ -71,12 +96,13 @@ def scrape_structured(subreddit, num_scrolls=3):
     driver.quit()
     return results
 
-def save_to_json(data, filename="reddit_structured_posts.json"):
+
+def save_to_json(data, filename="reddit_structured_posts_new.json"):
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 if __name__ == "__main__":
-    subreddit = "ImagesOfSingapore"
+    subreddit = "SecurityCamera"
     structured_posts = scrape_structured(subreddit, num_scrolls=2)
-    save_to_json(structured_posts)
+    save_to_json(structured_posts, filename="reddit_structured_posts_new.json")
     print(f"✅ Extracted {len(structured_posts)} structured posts from r/{subreddit}")
