@@ -1,82 +1,41 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+import requests
 import json
-import time
+from datetime import datetime
 
-def scrape_structured(subreddit, num_scrolls=3):
-    chrome_options = Options()
-    # chrome_options.add_argument("--headless")  # Enable headless if needed
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("user-agent=Mozilla/5.0")
+def fetch_reddit_json(subreddit, limit=25, sort="new"):
+    url = f"https://www.reddit.com/r/{subreddit}/{sort}.json?limit={limit}"
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; scraping-bot/1.0)"}
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch data: {response.status_code}")
 
-    driver.get(f"https://www.reddit.com/r/{subreddit}/new/")
-    WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, 'article'))
-    )
-
-    for _ in range(num_scrolls):
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(2)
-
-    posts = driver.find_elements(By.CSS_SELECTOR, 'article')
-
+    posts = response.json()['data']['children']
     results = []
+
     for post in posts:
-        try:
-            # Title and link
-            title_elem = post.find_element(By.CSS_SELECTOR, 'a[slot="title"]')
-            title = title_elem.text.strip()
-            url = "https://www.reddit.com" + title_elem.get_attribute("href")
+        data = post['data']
+        results.append({
+            "id": data.get("id"),
+            "title": data.get("title"),
+            "author": data.get("author"),
+            "url": "https://www.reddit.com" + data.get("permalink"),
+            "score": data.get("score"),
+            "num_comments": data.get("num_comments"),
+            "created_utc": datetime.utcfromtimestamp(data.get("created_utc")).isoformat() + "Z",
+            "flair": data.get("link_flair_text"),
+            "post_text": data.get("selftext") if data.get("selftext") else None
+        })
 
-            # Author
-            author_elem = post.find_element(By.CSS_SELECTOR, 'a[href^="/user/"]')
-            author = author_elem.text.strip()
-
-            # Timestamp
-            time_elem = post.find_element(By.CSS_SELECTOR, 'time')
-            timestamp = time_elem.get_attribute("datetime")
-
-            # Flair (optional)
-            try:
-                flair_elem = post.find_element(By.CSS_SELECTOR, '.flair-content')
-                flair = flair_elem.text.strip()
-            except:
-                flair = None
-
-            # Body preview
-            try:
-                body_elem = post.find_element(By.CSS_SELECTOR, '.feed-card-text-preview')
-                post_text = body_elem.text.strip()
-            except:
-                post_text = None
-
-            results.append({
-                "title": title,
-                "url": url,
-                "author": author,
-                "timestamp": timestamp,
-                "flair": flair,
-                "post_text": post_text
-            })
-        except Exception as e:
-            continue
-
-    driver.quit()
     return results
 
-def save_to_json(data, filename="reddit_structured_posts.json"):
+def save_to_json(data, subreddit):
+    filename=f"reddit_{subreddit}_posts.json"
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 if __name__ == "__main__":
-    subreddit = "ImagesOfSingapore"
-    structured_posts = scrape_structured(subreddit, num_scrolls=2)
-    save_to_json(structured_posts)
-    print(f"✅ Extracted {len(structured_posts)} structured posts from r/{subreddit}")
+    subreddit = "NationalServiceSG"
+    posts = fetch_reddit_json(subreddit, limit=50)
+    save_to_json(posts, subreddit)
+    print(f"✅ Extracted {len(posts)} posts from r/{subreddit} using the Reddit JSON API")

@@ -15,7 +15,7 @@ from oasis import (
 from camel.models import ModelFactory
 from camel.types import ModelPlatformType
 import time
-from oasis.social_agent.agent import SocialAgent
+from oasis.social_agent.agent import SocialAgent, ManualPosterAgent
 from oasis.social_agent.agent_graph import AgentGraph
 
 async def generate_hybrid_agent_graph(model, available_actions, llm_count=100, normal_count=3000):
@@ -37,7 +37,7 @@ async def generate_hybrid_agent_graph(model, available_actions, llm_count=100, n
     # Then normal agents (do nothing or only simple actions)
     normal_profiles = profiles[llm_count:llm_count + normal_count]
     for p in normal_profiles:
-        agent = SocialAgent(user_info=p, model=None, available_actions=[
+        agent = ManualPosterAgent(user_info=p, model=None, available_actions=[
             ActionType.LIKE_POST,
             ActionType.DISLIKE_POST,
             ActionType.LIKE_COMMENT,
