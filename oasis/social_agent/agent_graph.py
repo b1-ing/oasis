@@ -202,6 +202,8 @@ class AgentGraph:
         else:
             self.graph.create_agent(agent.social_agent_id)
         self.agent_mappings[agent.social_agent_id] = agent
+        print(f"Adding agent with ID type: {type(agent.social_agent_id)} and value {agent.social_agent_id}")
+
 
     def add_edge(self, agent_id_0: int, agent_id_1: int):
         try:
