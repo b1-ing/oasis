@@ -35,7 +35,7 @@ def save_to_json(data, subreddit):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 if __name__ == "__main__":
-    subreddit = "NationalServiceSG"
+    subreddit = "SecurityCamera"
     posts = fetch_reddit_json(subreddit, limit=50)
     save_to_json(posts, subreddit)
     print(f"✅ Extracted {len(posts)} posts from r/{subreddit} using the Reddit JSON API")

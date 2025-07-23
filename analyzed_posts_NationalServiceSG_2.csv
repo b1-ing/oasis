@@ -1,51 +1,51 @@
-id,title,score,num_comments,compound,num_keywords,has_question,computed_virality_score
-1m6dkh1,What da hell is MTI pro term in scs?,1,3,-0.8095,1,True,1.881
-1m6dd2j,IPPT tips and ways to improve,0,1,0.8271,0,True,3.654
-1m6c022,How to become GOH for SCDF during NDP?,0,1,0.4215,0,True,3.843
-1m6by3c,Possible vocations for long term light duty in (scdf),3,2,0.0,0,False,0.0
-1m68h9l,disposable underwear still allowed?,6,8,-0.296,0,False,-0.592
-1m68bli,Being a muslim in the army,48,33,0.9461,0,True,4.892
-1m67c5u,Just received my PES grading and am confused that I got an E1,37,15,-0.888,0,True,1.224
-1m66hjq,is there a gym/weight room in kranji sch V for E9,0,4,0.0,0,True,3.0
-1m66b0e,Suffering from mental health issues,12,7,-0.0788,1,True,4.342
-1m6504o,For those in pes BP Results after BMT,2,2,-0.3085,0,True,2.383
-1m64a7d,How do you actually make the most of your weekend book-outs?,52,9,0.9378,1,True,6.376
-1m647lo,Unclear enlist notice (PTP),9,3,0.4032,1,True,5.306
-1m62gzz,Boyfriend going for ranger course this year,114,16,0.8732,3,True,9.246
-1m61u2t,will svc medics be called up for reservist?,10,4,0.0,0,True,2.0
-1m5z3jt,Am i damn cb for always chao keng?,0,9,-0.6868,0,True,1.626
-1m5yjb6,Anyone know what's FFI for regular absorption,10,1,-0.2755,0,True,2.449
-1m5mzqg,Reservist pay if taking off/mc,4,0,-0.5482,0,True,1.904
-1m5kh7y,Tell me everything I should know if I were to sign on as a female,60,20,0.9853,1,True,6.471
-1m5i52o,waiting for PES status change,0,1,-0.4215,0,True,2.157
-1m5htlq,NSRO refuses to follow MO recommendation,30,5,0.9238,0,True,4.848
-1m5gv4e,Is it possible to report NDP food?,76,27,-0.7685,1,True,2.963
-1m5fd1j,Tore my acl in 2023. What will my PES be?,7,6,0.8602,0,True,4.72
-1m5ezqz,Random question about berets,19,2,-0.6369,0,True,1.726
-1m5e7vl,Army Safety Inspectorate ASI,0,4,0.3485,0,True,2.697
-1m5cvyr,Regarding Make up Pay for reservist,10,3,0.8959,0,True,4.792
-1m4yhkm,Pes E reservist outfield?,18,7,0.0,0,True,2.0
-1m4ov1c,Scared of having to retake BMT due to MCs,11,7,-0.7998,0,True,1.4
-1m4nu40,Will I Get Posted to a Combat Vocation Before Seeing PCC?,0,2,-0.8529,0,True,1.294
-1m4n2t7,sending outfield letter to my nsbf,14,7,0.3818,1,True,4.264
-1m4mqb3,"NSFIT settled, still need IPPT during ICT?",4,3,0.0,0,True,2.0
-1m4ltru,How are experiences with public psychiatrists?,0,3,0.9331,0,True,4.866
-1m4lsu0,Helping out fellow NSF in unit,66,21,0.5772,0,True,4.154
-1m4lb1p,Vocations for Recovery Company,6,3,0.0,0,True,2.0
-1m4jzrc,What Commando Vocation should I pick,103,26,0.963,2,True,7.926
-1m4jb0g,Holding Area/Room (in SCDF) Queries,8,6,0.9663,0,True,4.933
-1m4d4n2,How to listen and not impose your opinions on someone,39,11,0.2012,0,True,3.402
-1m41m65,"Going for a surgery for my ACL, possible to Up pes to join a combat unit",6,4,0.4019,0,True,3.804
-1m41aws,How do emart credits work for nsmen?,1,8,0.9148,0,True,4.83
-1m3z7ui,losing mass and feeling depressed,11,8,0.6888,0,True,4.378
-1m3z7gx,any ways to get saf laundry (or similar looking ones) outside?,0,5,-0.4417,1,True,2.617
-1m3y4n1,Signing on to C4X? Worth it or not,29,15,0.9872,0,True,4.974
-1m3xi25,Worried I'm losing my bf while he's in NS,46,51,0.9732,11,True,21.446
-1m3teza,Want To Attend A Concert in Nov,1,17,0.9586,0,True,4.917
-1m3sty2,How is radar battery of artillery like?,0,4,0.3612,0,True,2.722
-1m3rxib,eSIM for Brunei exercises,9,4,0.6114,0,True,3.223
-1m3rjrx,worried about him (but i’ll never admit it) update,50,6,0.9763,0,True,4.953
-1m3ply7,Introducing new Hentak Kaki song! 😆,0,9,-0.7848,0,True,1.43
-1m3ood7,Supply assistant (GE) 9 div HQ,1,1,0.3612,0,True,2.722
-1m3mii5,late entry commision(LEC) as a regular spec,8,2,0.0,0,True,3.0
-1m3m4l1,5 sir mono intake for 2025,50,37,0.6908,0,True,3.382
+id,title,score,num_comments,compound,num_keywords,has_question,computed_virality_score,trigger_keywords_found
+1m6dkh1,What da hell is MTI pro term in scs?,1,3,-0.8095,0,True,0.381,[]
+1m6dd2j,IPPT tips and ways to improve,0,1,0.8271,0,True,3.654,[]
+1m6c022,How to become GOH for SCDF during NDP?,0,1,0.4215,0,True,3.843,[]
+1m6by3c,Possible vocations for long term light duty in (scdf),3,2,0.0,0,False,0.0,[]
+1m68h9l,disposable underwear still allowed?,6,8,-0.296,0,False,-0.592,[]
+1m68bli,Being a muslim in the army,48,33,0.9461,0,True,4.892,[]
+1m67c5u,Just received my PES grading and am confused that I got an E1,37,15,-0.888,0,True,1.224,[]
+1m66hjq,is there a gym/weight room in kranji sch V for E9,0,4,0.0,0,True,3.0,[]
+1m66b0e,Suffering from mental health issues,12,7,-0.0788,0,True,2.842,[]
+1m6504o,For those in pes BP Results after BMT,2,2,-0.3085,0,True,2.383,[]
+1m64a7d,How do you actually make the most of your weekend book-outs?,52,9,0.9378,0,True,4.876,[]
+1m647lo,Unclear enlist notice (PTP),9,3,0.4032,0,True,3.806,[]
+1m62gzz,Boyfriend going for ranger course this year,114,16,0.8732,0,True,4.746,[]
+1m61u2t,will svc medics be called up for reservist?,10,4,0.0,0,True,2.0,[]
+1m5z3jt,Am i damn cb for always chao keng?,0,9,-0.6868,0,True,1.626,[]
+1m5yjb6,Anyone know what's FFI for regular absorption,10,1,-0.2755,0,True,2.449,[]
+1m5mzqg,Reservist pay if taking off/mc,4,0,-0.5482,0,True,1.904,[]
+1m5kh7y,Tell me everything I should know if I were to sign on as a female,60,20,0.9853,0,True,4.971,[]
+1m5i52o,waiting for PES status change,0,1,-0.4215,0,True,2.157,[]
+1m5htlq,NSRO refuses to follow MO recommendation,30,5,0.9238,0,True,4.848,[]
+1m5gv4e,Is it possible to report NDP food?,76,27,-0.7685,0,True,1.463,[]
+1m5fd1j,Tore my acl in 2023. What will my PES be?,7,6,0.8602,0,True,4.72,[]
+1m5ezqz,Random question about berets,19,2,-0.6369,0,True,1.726,[]
+1m5e7vl,Army Safety Inspectorate ASI,0,4,0.3485,0,True,2.697,[]
+1m5cvyr,Regarding Make up Pay for reservist,10,3,0.8959,0,True,4.792,[]
+1m4yhkm,Pes E reservist outfield?,18,7,0.0,0,True,2.0,[]
+1m4ov1c,Scared of having to retake BMT due to MCs,11,7,-0.7998,0,True,1.4,[]
+1m4nu40,Will I Get Posted to a Combat Vocation Before Seeing PCC?,0,2,-0.8529,0,True,1.294,[]
+1m4n2t7,sending outfield letter to my nsbf,14,7,0.3818,0,True,2.764,[]
+1m4mqb3,"NSFIT settled, still need IPPT during ICT?",4,3,0.0,0,True,2.0,[]
+1m4ltru,How are experiences with public psychiatrists?,0,3,0.9331,0,True,4.866,[]
+1m4lsu0,Helping out fellow NSF in unit,66,21,0.5772,0,True,4.154,[]
+1m4lb1p,Vocations for Recovery Company,6,3,0.0,0,True,2.0,[]
+1m4jzrc,What Commando Vocation should I pick,103,26,0.963,0,True,4.926,[]
+1m4jb0g,Holding Area/Room (in SCDF) Queries,8,6,0.9663,0,True,4.933,[]
+1m4d4n2,How to listen and not impose your opinions on someone,39,11,0.2012,0,True,3.402,[]
+1m41m65,"Going for a surgery for my ACL, possible to Up pes to join a combat unit",6,4,0.4019,0,True,3.804,[]
+1m41aws,How do emart credits work for nsmen?,1,8,0.9148,0,True,4.83,[]
+1m3z7ui,losing mass and feeling depressed,11,8,0.6888,0,True,4.378,[]
+1m3z7gx,any ways to get saf laundry (or similar looking ones) outside?,0,5,-0.4417,0,True,1.117,[]
+1m3y4n1,Signing on to C4X? Worth it or not,29,15,0.9872,0,True,4.974,[]
+1m3xi25,Worried I'm losing my bf while he's in NS,46,51,0.9732,0,True,4.946,[]
+1m3teza,Want To Attend A Concert in Nov,1,17,0.9586,0,True,4.917,[]
+1m3sty2,How is radar battery of artillery like?,0,4,0.3612,0,True,2.722,[]
+1m3rxib,eSIM for Brunei exercises,9,4,0.6114,0,True,3.223,[]
+1m3rjrx,worried about him (but i’ll never admit it) update,50,6,0.9763,0,True,4.953,[]
+1m3ply7,Introducing new Hentak Kaki song! 😆,0,9,-0.7848,0,True,1.43,[]
+1m3ood7,Supply assistant (GE) 9 div HQ,1,1,0.3612,0,True,2.722,[]
+1m3mii5,late entry commision(LEC) as a regular spec,8,2,0.0,0,True,3.0,[]
+1m3m4l1,5 sir mono intake for 2025,50,37,0.6908,0,True,3.382,[]

@@ -132,28 +132,44 @@ class SocialAgent(ChatAgent):
                 f"Please perform social media actions after observing the "
                 f"platform environments. Notice that don't limit your "
                 f"actions for example to just like the posts. "
+                f"Always explain your reasoning behind the action.\n\n"
                 f"Here is your social media environment: {env_prompt}"))
+
         try:
-            agent_log.info(
-                f"Agent {self.social_agent_id} observing environment: "
-                f"{env_prompt}")
+            agent_log.info(f"Agent {self.social_agent_id} observing environment:\n{env_prompt}")
+
+            # Step 3: Get LLM response
             response = await self.astep(user_msg)
-            for tool_call in response.info['tool_calls']:
+            content = response.content.strip() if hasattr(response, "content") else ""
+
+            # Step 4: Attempt to extract reasoning from plain text (fallback)
+            if content:
+                agent_log.info(f"Agent {self.social_agent_id} raw response:\n{content}")
+                # Optional: store reasoning somewhere if you have a log DB
+                # self.store_agent_reasoning(self.social_agent_id, content)
+
+            # Step 5: Process structured tool_calls (if any)
+            for tool_call in response.info.get("tool_calls", []):
                 action_name = tool_call.tool_name
                 args = tool_call.args
-                agent_log.info(f"Agent {self.social_agent_id} performed "
-                               f"action: {action_name} with args: {args}")
-                if action_name not in ALL_SOCIAL_ACTIONS:
-                    agent_log.info(
-                        f"Agent {self.social_agent_id} get the result: "
-                        f"{tool_call.result}")
-                # Abort graph action for if 100w Agent
-                # self.perform_agent_graph_action(action_name, args)
+                result = tool_call.result
 
-                return response
+                # Log structured action
+                agent_log.info(f"Agent {self.social_agent_id} performed action: {action_name} with args: {args}")
+
+                # Log reasoning if embedded in the tool result
+                if isinstance(result, str) and "Reason" in result:
+                    agent_log.info(f"Agent {self.social_agent_id} reason: {result.strip()}")
+                elif hasattr(tool_call, "reason"):
+                    agent_log.info(f"Agent {self.social_agent_id} reason (explicit): {tool_call.reason}")
+                else:
+                    agent_log.info(f"Agent {self.social_agent_id} result: {result}")
+
         except Exception as e:
-            agent_log.error(f"Agent {self.social_agent_id} error: {e}")
-            return e
+            agent_log.error(f"Agent {self.social_agent_id} failed to perform action: {e}")
+                    # Abort graph action for if 100w Agent
+                    # self.perform_agent_graph_action(action_name, args)
+
 
     async def perform_test(self):
         """

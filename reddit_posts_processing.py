@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from collections import defaultdict
 
-subreddit="NationalServiceSG"
+subreddit="SecurityCamera"
 # Load posts
 with open(f"reddit_{subreddit}_posts.json", "r", encoding="utf-8") as f:
     posts = json.load(f)

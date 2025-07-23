@@ -62,6 +62,18 @@ class SocialEnvironment(Environment):
         # TODO: Replace posts json format string to other formats
         if posts["success"]:
             posts_env = json.dumps(posts["posts"], indent=4)
+            posts_env = posts_env + (
+                                     f"🧠 Community Virality Insight:\n"
+                                     "In this community, posts that go viral typically:\n"
+                                     "- contain questions in the post text\n"
+                                     "- express emotions like *anger*, *frustration*, or *sadness*\n"
+                                     "- use keywords such as *booking*, *complaint*, *training*, *weekend*, *saf*\n"
+                                     "- have strong emotional sentiment (positive or negative)\n"
+                                     "- are longer than 50 words\n"
+                                     "Always explain your reasoning behind the action.\n\n"
+                                     "Respond in the following format:\n"
+                                     "- Action: [action type] on Post [id or index]\n"
+                                     "- Reason: [short explanation based on post content and virality signals]")
             posts_env = self.posts_env_template.substitute(posts=posts_env)
         else:
             posts_env = "After refreshing, there are no existing posts."

@@ -3,9 +3,11 @@ import pandas as pd
 import spacy
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.feature_extraction.text import CountVectorizer
-# Load posts
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+import torch
 
-subreddit="NationalServiceSG"
+# Load posts
+subreddit = "SecurityCamera"
 with open(f"processed_{subreddit}_posts.json", "r", encoding="utf-8") as f:
     posts = json.load(f)
 
@@ -13,37 +15,78 @@ with open(f"processed_{subreddit}_posts.json", "r", encoding="utf-8") as f:
 analyzer = SentimentIntensityAnalyzer()
 nlp = spacy.load("en_core_web_sm")
 
-# Trigger keywords that often appear in viral posts
+# Initialize tag generation model
+tag_tokenizer = AutoTokenizer.from_pretrained("fabiochiu/t5-base-tag-generation")
+tag_model = AutoModelForSeq2SeqLM.from_pretrained("fabiochiu/t5-base-tag-generation")
+
+# Function to generate tags for text
+def generate_tags(text, max_tags=5):
+    if not text or len(text.strip()) < 10:
+        return []
+
+    input_ids = tag_tokenizer(f"Generate tags for this text: {text}",
+                              return_tensors="pt", truncation=True, max_length=512).input_ids
+
+    with torch.no_grad():
+        outputs = tag_model.generate(input_ids, max_length=64, num_beams=4,
+                                     do_sample=False, num_return_sequences=1)
+
+    tags_text = tag_tokenizer.decode(outputs[0], skip_special_tokens=True)
+    tags = [tag.strip() for tag in tags_text.split(",") if tag.strip()]
+    print(tags)
+    return tags[:max_tags]
+
+# Get post text
 def post_text(p):
     return ((p.get('title') or '') + ' ' + (p.get('post_text') or '')).lower()
 
 texts = [post_text(p) for p in posts]
 virality_metric = [(p['score'] + 0.5 * p['num_comments']) for p in posts]
 
-# Top X% are viral
+# Create DataFrame
 df = pd.DataFrame({'text': texts, 'virality': virality_metric})
+print(df)
 threshold = df['virality'].quantile(0.90)
 viral_texts = df[df['virality'] >= threshold]['text']
 nonviral_texts = df[df['virality'] < threshold]['text']
 
 # ----------------------------
-# STEP 2: Extract common discriminative keywords
+# STEP 2: Generate tags for viral vs non-viral posts
 # ----------------------------
-vectorizer = CountVectorizer(stop_words='english', max_features=3000)
-X_viral = vectorizer.fit_transform(viral_texts)
-X_nonviral = vectorizer.transform(nonviral_texts)
+print("Generating tags for viral posts...")
+viral_tags = []
+for text in viral_texts:
+    if text and len(text) > 10:  # Skip very short texts
+        tags = generate_tags(text)
+        viral_tags.extend(tags)
 
-viral_freq = X_viral.sum(axis=0).A1
-nonviral_freq = X_nonviral.sum(axis=0).A1
-vocab = vectorizer.get_feature_names_out()
+print("Generating tags for non-viral posts...")
+nonviral_tags = []
+for text in nonviral_texts:
+    if text and len(text) > 10:
+        tags = generate_tags(text)
+        nonviral_tags.extend(tags)
 
-# Compute "viral bias score" for each keyword
-keyword_scores = [(vocab[i], viral_freq[i] - nonviral_freq[i]) for i in range(len(vocab))]
-keyword_scores.sort(key=lambda x: -x[1])
+# Count tag frequencies
+from collections import Counter
+viral_tag_counts = Counter(viral_tags)
+nonviral_tag_counts = Counter(nonviral_tags)
 
-# Pick top 15 viral keywords
-trigger_keywords = [kw for kw, score in keyword_scores[:15]]
+# Compute "viral bias score" for each tag
+all_tags = set(list(viral_tag_counts.keys()) + list(nonviral_tag_counts.keys()))
+tag_scores = []
+for tag in all_tags:
+    viral_freq = viral_tag_counts.get(tag, 0)
+    nonviral_freq = nonviral_tags.count(tag)  # More accurate count
+    bias_score = viral_freq - nonviral_freq
+    tag_scores.append((tag, bias_score))
+
+tag_scores.sort(key=lambda x: -x[1])
+
+# Pick top 15 viral tags as trigger keywords
+trigger_keywords = [tag for tag, score in tag_scores[:15] if len(tag) > 2 and tag.isalpha()]
 print("Auto-generated trigger keywords:", trigger_keywords)
+
 # Detect if a sentence is a question using NLP
 def is_question_nlp(text):
     if not text:
@@ -73,10 +116,10 @@ def compute_features(post):
 
     # Simple rule-based virality score
     score = (
-        compound * 2 +
-        num_keywords * 1.5 +
-        has_question * 2 +
-        (word_count > 50) * 1.0
+            compound * 2 +
+            num_keywords * 1.5 +
+            has_question * 2 +
+            (word_count > 50) * 1.0
     )
 
     return {
@@ -87,10 +130,12 @@ def compute_features(post):
         "compound": compound,
         "num_keywords": num_keywords,
         "has_question": has_question,
-        "computed_virality_score": round(score, 3)
+        "computed_virality_score": round(score, 3),
+        "trigger_keywords_found": [kw for kw in trigger_keywords if kw in combined]
     }
 
 # Apply to all posts
+print("Computing features for all posts...")
 features_df = pd.DataFrame([compute_features(p) for p in posts])
 
 # Rank by predicted virality
@@ -100,4 +145,11 @@ top_predicted = features_df.sort_values(by="computed_virality_score", ascending=
 features_df.to_csv(f"analyzed_posts_{subreddit}_2.csv", index=False)
 
 # Preview top 10
-print(top_predicted.head(10))
+print("Top 10 predicted viral posts:")
+print(top_predicted[['title', 'computed_virality_score', 'trigger_keywords_found']].head(10))
+
+# Show tag analysis summary
+print(f"\nTag Analysis Summary:")
+print(f"Total viral posts analyzed: {len(viral_texts)}")
+print(f"Total non-viral posts analyzed: {len(nonviral_texts)}")
+print(f"Top 10 viral-biased tags: {[tag for tag, score in tag_scores[:10]]}")
